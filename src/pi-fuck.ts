@@ -1,6 +1,4 @@
-import type { ExtensionAPI, SessionEntry, SessionStartEvent } from "@mariozechner/pi-coding-agent";
-
-const COMPACTION_STALE_AFTER_MS = 5 * 60 * 1000;
+import type { ExtensionAPI, SessionEntry } from "@mariozechner/pi-coding-agent";
 
 function isUserMessageEntry(
 	entry: SessionEntry,
@@ -8,50 +6,20 @@ function isUserMessageEntry(
 	return entry.type === "message" && entry.message.role === "user";
 }
 
-export default function (pi: ExtensionAPI) {
+export default function piFuck(pi: ExtensionAPI) {
 	let isCompacting = false;
-	let compactionTimer: ReturnType<typeof setTimeout> | undefined;
 
 	const clearCompactionState = () => {
 		isCompacting = false;
-		if (compactionTimer) {
-			clearTimeout(compactionTimer);
-			compactionTimer = undefined;
-		}
 	};
 
-	const markCompactionStart = (signal?: AbortSignal) => {
+	pi.on("session_start", clearCompactionState);
+	pi.on("session_shutdown", clearCompactionState);
+	pi.on("session_before_compact", ({ signal }) => {
 		isCompacting = true;
-		if (compactionTimer) {
-			clearTimeout(compactionTimer);
-		}
-		compactionTimer = setTimeout(() => {
-			compactionTimer = undefined;
-			isCompacting = false;
-		}, COMPACTION_STALE_AFTER_MS);
-
-		signal?.addEventListener("abort", clearCompactionState, { once: true });
-	};
-
-	pi.on("session_start", async (_event: SessionStartEvent) => {
-		clearCompactionState();
+		signal.addEventListener("abort", clearCompactionState, { once: true });
 	});
-
-	pi.on("session_shutdown", async () => {
-		clearCompactionState();
-	});
-
-	pi.on("session_before_compact", async (event) => {
-		markCompactionStart(event.signal);
-	});
-
-	pi.on("session_compact", async () => {
-		clearCompactionState();
-	});
-
-	pi.on("agent_start", async () => {
-		clearCompactionState();
-	});
+	pi.on("session_compact", clearCompactionState);
 
 	pi.registerCommand("fuck", {
 		description: "Abort the current run and recover the last user prompt into the editor",
@@ -82,22 +50,13 @@ export default function (pi: ExtensionAPI) {
 				await ctx.waitForIdle();
 			}
 
-			const branch = ctx.sessionManager.getBranch();
-			let target: SessionEntry | undefined;
-			for (let i = branch.length - 1; i >= 0; i--) {
-				const entry = branch[i];
-				if (entry && isUserMessageEntry(entry)) {
-					target = entry;
-					break;
-				}
-			}
-
-			if (!target) {
+			const lastUserMessage = ctx.sessionManager.getBranch().findLast(isUserMessageEntry);
+			if (!lastUserMessage) {
 				ctx.ui.notify("Nothing to recover on this branch. Use /tree for manual navigation.", "info");
 				return;
 			}
 
-			const result = await ctx.navigateTree(target.id);
+			const result = await ctx.navigateTree(lastUserMessage.id);
 			if (result.cancelled) {
 				ctx.ui.notify("Recovery cancelled.", "info");
 				return;
