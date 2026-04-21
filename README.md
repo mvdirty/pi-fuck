@@ -4,7 +4,7 @@ A small [pi](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent
 
 `/fuck` aborts the current run if needed, rewinds to before the most recent user prompt on the active branch, and restores that prompt into the editor so you can fix it and resubmit.
 
-_Inspired by the great [thefuck](https://github.com/nvbn/thefuck).
+_Inspired by the great [thefuck](https://github.com/nvbn/thefuck)._
 
 ## Install
 
