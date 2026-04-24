@@ -10,6 +10,8 @@ A small [pi](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent
 
 _Inspired by the great [thefuck](https://github.com/nvbn/thefuck)._
 
+Currently experimental and I expect to change the interface and commands significantly
+
 ## Install
 
 Install from GitHub:
