@@ -199,9 +199,9 @@ async function offerSlashCommandTypoFix(
 
 	if (useSuggestion) {
 		ctx.ui.setEditorText(suggestion);
-		ctx.ui.notify(`fuck typo: changed /${parsed.commandName} to /${closestCommand}`, "info");
+		ctx.ui.notify(`fuck?: changed /${parsed.commandName} to /${closestCommand}`, "info");
 	} else {
-		ctx.ui.notify("fuck typo: kept original prompt", "info");
+		ctx.ui.notify("fuck?: kept original prompt", "info");
 	}
 
 	return true;
@@ -248,13 +248,13 @@ function buildTypoFixUserPrompt(originalPrompt: string): string {
 async function suggestTypoFix(originalPrompt: string, ctx: ExtensionCommandContext): Promise<string | undefined> {
 	const model = ctx.model;
 	if (!model) {
-		ctx.ui.notify("fuck typo: no model available", "warning");
+		ctx.ui.notify("fuck?: no model available", "warning");
 		return undefined;
 	}
 
 	const auth = await ctx.modelRegistry.getApiKeyAndHeaders(model);
 	if (!auth?.ok || !auth.apiKey) {
-		ctx.ui.notify(auth?.ok === false ? auth.error : "fuck typo: no API key", "warning");
+		ctx.ui.notify(auth?.ok === false ? auth.error : "fuck?: no API key", "warning");
 		return undefined;
 	}
 
@@ -285,7 +285,7 @@ async function suggestTypoFix(originalPrompt: string, ctx: ExtensionCommandConte
 		}
 	}
 
-	ctx.ui.notify("fuck typo: model did not return a typo correction", "warning");
+	ctx.ui.notify("fuck?: model did not return a typo correction", "warning");
 	return undefined;
 }
 
@@ -303,7 +303,7 @@ async function offerTypoFix(originalPrompt: string, pi: ExtensionAPI, ctx: Exten
 		}
 
 		if (suggestion.trim() === originalPrompt.trim()) {
-			ctx.ui.notify("fuck typo: no obvious typo fix found", "info");
+			ctx.ui.notify("fuck?: no obvious typo fix found", "info");
 			return;
 		}
 
@@ -322,12 +322,12 @@ async function offerTypoFix(originalPrompt: string, pi: ExtensionAPI, ctx: Exten
 
 		if (useSuggestion) {
 			ctx.ui.setEditorText(suggestion);
-			ctx.ui.notify("fuck typo: applied suggestion", "info");
+			ctx.ui.notify("fuck?: applied suggestion", "info");
 		} else {
-			ctx.ui.notify("fuck typo: kept original prompt", "info");
+			ctx.ui.notify("fuck?: kept original prompt", "info");
 		}
 	} catch (error) {
-		ctx.ui.notify(`fuck typo failed: ${error instanceof Error ? error.message : String(error)}`, "warning");
+		ctx.ui.notify(`fuck? failed: ${error instanceof Error ? error.message : String(error)}`, "warning");
 	} finally {
 		ctx.ui.setStatus("pi-fuck", undefined);
 		ctx.ui.setWidget("pi-fuck-typo", undefined);
@@ -336,22 +336,22 @@ async function offerTypoFix(originalPrompt: string, pi: ExtensionAPI, ctx: Exten
 
 export default function piFuck(pi: ExtensionAPI) {
 	let isCompacting = false;
-	let isFuckhardActive = false;
+	let isDestructiveCommandActive = false;
 
 	const clearCompactionState = () => {
 		isCompacting = false;
 	};
 
-	const clearFuckhardActivation = () => {
-		isFuckhardActive = false;
+	const clearDestructiveCommandActivation = () => {
+		isDestructiveCommandActive = false;
 	};
 
 	const resetSessionState = () => {
 		clearCompactionState();
-		clearFuckhardActivation();
+		clearDestructiveCommandActivation();
 	};
 
-	const prepareCommand = async (commandName: "fuck" | "fuckhard", ctx: ExtensionCommandContext) => {
+	const prepareCommand = async (commandName: string, ctx: ExtensionCommandContext) => {
 		if (isCompacting) {
 			ctx.ui.notify(
 				`Can't /${commandName} during compaction. Press Esc to cancel compaction, then run /${commandName} again.`,
@@ -376,14 +376,45 @@ export default function piFuck(pi: ExtensionAPI) {
 		return true;
 	};
 
+	const rejectUnexpectedArgs = (commandName: string, args: string, ctx: ExtensionCommandContext) => {
+		if (!args.trim()) {
+			return false;
+		}
+
+		ctx.ui.notify(`Usage: /${commandName}`, "warning");
+		return true;
+	};
+
+	const recoverLastPrompt = async (commandName: string, ctx: ExtensionCommandContext) => {
+		if (!(await prepareCommand(commandName, ctx))) {
+			return undefined;
+		}
+
+		const lastUserMessage = getLastUserMessage(ctx.sessionManager.getBranch());
+		if (!lastUserMessage) {
+			ctx.ui.notify("Nothing to recover on this branch. Use /tree for manual navigation.", "info");
+			return undefined;
+		}
+
+		const originalPrompt = extractUserMessageText(lastUserMessage);
+		const result = await ctx.navigateTree(lastUserMessage.id);
+		if (result.cancelled) {
+			ctx.ui.notify("Recovery cancelled.", "info");
+			return undefined;
+		}
+
+		ctx.ui.notify(`${commandName}: navigated back to last prompt`, "info");
+		return originalPrompt;
+	};
+
 	pi.on("session_start", resetSessionState);
-	pi.on("input", clearFuckhardActivation);
+	pi.on("input", clearDestructiveCommandActivation);
 	pi.on("message_start", (event) => {
 		if (event.message.role === "user") {
-			isFuckhardActive = true;
+			isDestructiveCommandActive = true;
 		}
 	});
-	pi.on("session_tree", clearFuckhardActivation);
+	pi.on("session_tree", clearDestructiveCommandActivation);
 	pi.on("session_before_compact", ({ signal }) => {
 		isCompacting = true;
 		signal.addEventListener("abort", clearCompactionState, { once: true });
@@ -391,58 +422,48 @@ export default function piFuck(pi: ExtensionAPI) {
 	pi.on("session_compact", clearCompactionState);
 
 	pi.registerCommand("fuck", {
-		description: "Abort the current run, recover the last prompt, optionally suggest a typo fix",
+		description: "Abort the current run and recover the last prompt",
 		handler: async (args, ctx) => {
-			clearFuckhardActivation();
-
-			const mode = args.trim();
-			if (mode && mode !== "typo") {
-				ctx.ui.notify("Usage: /fuck [typo]", "warning");
+			clearDestructiveCommandActivation();
+			if (rejectUnexpectedArgs("fuck", args, ctx)) {
 				return;
 			}
 
-			if (!(await prepareCommand("fuck", ctx))) {
+			await recoverLastPrompt("fuck", ctx);
+		},
+	});
+
+	pi.registerCommand("fuck?", {
+		description: "Abort the current run, recover the last prompt, and suggest a typo fix",
+		handler: async (args, ctx) => {
+			clearDestructiveCommandActivation();
+			if (rejectUnexpectedArgs("fuck?", args, ctx)) {
 				return;
 			}
 
-			const lastUserMessage = getLastUserMessage(ctx.sessionManager.getBranch());
-			if (!lastUserMessage) {
-				ctx.ui.notify("Nothing to recover on this branch. Use /tree for manual navigation.", "info");
-				return;
-			}
-
-			const originalPrompt = extractUserMessageText(lastUserMessage);
-			const result = await ctx.navigateTree(lastUserMessage.id);
-			if (result.cancelled) {
-				ctx.ui.notify("Recovery cancelled.", "info");
-				return;
-			}
-
-			ctx.ui.notify("fuck: navigated back to last prompt", "info");
-
-			if (mode === "typo") {
+			const originalPrompt = await recoverLastPrompt("fuck?", ctx);
+			if (originalPrompt !== undefined) {
 				await offerTypoFix(originalPrompt, pi, ctx);
 			}
 		},
 	});
 
-	pi.registerCommand("fuckhard", {
+	pi.registerCommand("fuck!", {
 		description: "Destructively rewrite the current session to remove the last prompt subtree",
 		handler: async (args, ctx) => {
-			if (args.trim()) {
-				ctx.ui.notify("Usage: /fuckhard", "warning");
+			if (rejectUnexpectedArgs("fuck!", args, ctx)) {
 				return;
 			}
 
-			if (!isFuckhardActive) {
+			if (!isDestructiveCommandActive) {
 				ctx.ui.notify(
-					"Can't /fuckhard now. It only works immediately during or after a user prompt.",
+					"Can't /fuck! now. It only works immediately during or after a user prompt.",
 					"warning",
 				);
 				return;
 			}
 
-			if (!(await prepareCommand("fuckhard", ctx))) {
+			if (!(await prepareCommand("fuck!", ctx))) {
 				return;
 			}
 
@@ -459,7 +480,7 @@ export default function piFuck(pi: ExtensionAPI) {
 				return;
 			}
 
-			clearFuckhardActivation();
+			clearDestructiveCommandActivation();
 
 			// Match /fuck's recovery path first so Pi restores the prompt into the editor.
 			// After that, rewrite the session file to delete the recovered prompt's subtree.
@@ -468,13 +489,15 @@ export default function piFuck(pi: ExtensionAPI) {
 				return;
 			}
 
+			ctx.ui.notify("fuck!: navigated back to last prompt", "info");
+
 			const rewrittenEntries = removeEntrySubtree(ctx.sessionManager.getEntries(), lastUserMessage.id);
 
 			rewriteSessionInPlace(sessionFile, sessionHeader, rewrittenEntries);
 			await ctx.switchSession(sessionFile, {
 				withSession: async (replacementCtx) => {
 					replacementCtx.ui.notify(
-						"fuckhard: navigated back to last prompt and dropped messages from session",
+						"fuck!: navigated back to last prompt and dropped messages from session",
 						"info",
 					);
 				},

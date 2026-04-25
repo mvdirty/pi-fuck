@@ -4,13 +4,11 @@ A small [pi](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent
 
 `/fuck` aborts the current run if needed, rewinds to before the most recent user prompt on the active branch, and restores that prompt into the editor so you can fix it and resubmit.
 
-`/fuck typo` does the same recovery, then suggests a conservative typo-only correction and lets you choose whether to use it.
+`/fuck?` does the same recovery, then suggests a conservative typo-only correction and lets you choose whether to use it. Note that this uses your currently configured model.
 
-`/fuckhard` destructively rewrites the current session file to remove the most recent user prompt and everything below it, then reloads that same session and restores the prompt into the editor.
+`/fuck!` destructively rewrites the current session file to remove the most recent user prompt and everything below it, then reloads that same session and restores the prompt into the editor.
 
 _Inspired by the great [thefuck](https://github.com/nvbn/thefuck)._
-
-Currently experimental and I expect to change the interface and commands significantly
 
 ## Install
 
@@ -44,8 +42,8 @@ Inside pi:
 
 ```text
 /fuck
-/fuck typo
-/fuckhard
+/fuck?
+/fuck!
 ```
 
 What `/fuck` does:
@@ -55,7 +53,7 @@ What `/fuck` does:
 3. Rewinds to just before that prompt
 4. Restores the prompt into the editor
 
-What `/fuck typo` does:
+What `/fuck?` does:
 
 Runs the same recovery as `/fuck`, but then checks for typos:
 - checks for /command typos directly
@@ -63,11 +61,11 @@ Runs the same recovery as `/fuck`, but then checks for typos:
 
 If found, it shows the suggestion and asks if the user wants to use the suggestion instead
 
-What `/fuckhard` does:
+What `/fuck!` does:
 
 Runs the same recovery as `/fuck`, but then destructively removes that prompt and its descendant subtree from the current session file
 
-After `/fuckhard` succeeds, or after tree navigation, it becomes unavailable until another real user prompt is sent. It is intended to only be used once to remove a clear mistake, not as general session history editing.
+After `/fuck!` succeeds, or after tree navigation, it becomes unavailable until another real user prompt is sent. It is intended to only be used once to remove a clear mistake, not as general session history editing.
 
 ## Limitations
 
@@ -75,9 +73,9 @@ After `/fuckhard` succeeds, or after tree navigation, it becomes unavailable unt
 - It does **not** undo file or external side effects
 - It does **not** work when queued messages exist
 - It does **not** work when compaction is running
-- `/fuck typo` requires the current model to support tool calling and have usable credentials
-- `/fuckhard` only works immediately during or after a real user prompt; succeeding or navigating the tree makes it unavailable until another prompt is sent
-- `/fuckhard` is **destructive** and rewrites the current session file in place
+- `/fuck?` requires the current model to support tool calling and have usable credentials
+- `/fuck!` only works immediately during or after a real user prompt; succeeding or navigating the tree makes it unavailable until another prompt is sent
+- `/fuck!` is **destructive** and rewrites the current session file in place
 
 **IT DOES NOT UNDO FILE SYSTEM OR OTHER EXTERNAL SIDE EFFECTS**
 
