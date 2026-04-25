@@ -489,17 +489,19 @@ export default function piFuck(pi: ExtensionAPI) {
 				return;
 			}
 
-			ctx.ui.notify("fuck!: navigated back to last prompt", "info");
-
 			const rewrittenEntries = removeEntrySubtree(ctx.sessionManager.getEntries(), lastUserMessage.id);
 
 			rewriteSessionInPlace(sessionFile, sessionHeader, rewrittenEntries);
 			await ctx.switchSession(sessionFile, {
 				withSession: async (replacementCtx) => {
-					replacementCtx.ui.notify(
-						"fuck!: navigated back to last prompt and dropped messages from session",
-						"info",
-					);
+					// Pi reports "Resumed session" after withSession returns, so defer this
+					// notification until the session switch has fully finished.
+					setTimeout(() => {
+						replacementCtx.ui.notify(
+							"fuck!: navigated back to last prompt and dropped messages from session",
+							"info",
+						);
+					}, 0);
 				},
 			});
 		},
