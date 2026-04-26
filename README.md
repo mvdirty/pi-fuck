@@ -12,28 +12,22 @@ _Inspired by the great [thefuck](https://github.com/nvbn/thefuck)._
 
 ## Install
 
+Install from npm:
+
+```bash
+pi install npm:pi-fuck
+```
+
 Install from GitHub:
 
 ```bash
 pi install git:github.com/travisp/pi-fuck
 ```
 
-Project-local install:
-
-```bash
-pi install -l git:github.com/travisp/pi-fuck
-```
-
-Local development install:
-
-```bash
-pi install /absolute/path/to/pi-fuck
-```
-
 Quick one-off test:
 
 ```bash
-pi -e /absolute/path/to/pi-fuck
+pi -e git:github.com/travisp/pi-fuck
 ```
 
 ## Usage

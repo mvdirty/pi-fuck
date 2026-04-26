@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "description": "Recover the last user prompt in pi after you realize you messed up.",
   "type": "module",
+  "author": "Travis Pew",
   "license": "MIT",
-  "keywords": ["pi-package"],
+  "keywords": ["pi-package", "pi"],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/travisp/pi-fuck.git"
@@ -14,6 +15,9 @@
     "url": "https://github.com/travisp/pi-fuck/issues"
   },
   "files": ["src", "README.md", "LICENSE"],
+  "publishConfig": {
+    "access": "public"
+  },
   "pi": {
     "extensions": ["./src/pi-fuck.ts"]
   },
