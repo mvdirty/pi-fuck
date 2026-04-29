@@ -1,6 +1,6 @@
 {
   "name": "pi-wtf",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Recover the last user prompt in pi after you realize you messed up.",
   "type": "module",
   "author": "Travis Pew",
@@ -21,10 +21,8 @@
   "pi": {
     "extensions": ["./src/pi-wtf.ts"]
   },
-  "dependencies": {
-    "@mariozechner/pi-ai": "*"
-  },
   "peerDependencies": {
+    "@mariozechner/pi-ai": "*",
     "@mariozechner/pi-coding-agent": "*"
   }
 }
