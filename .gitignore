@@ -29,3 +29,6 @@ tmp/
 
 # Local pi project state
 .pi/
+
+# Agent trash
+.claude/
