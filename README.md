@@ -1,4 +1,4 @@
-# pi-wtf
+# pi-wtf [![NPM Version](https://img.shields.io/npm/v/pi-wtf)](https://www.npmjs.com/package/pi-wtf)
 
 A small [pi](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent) extension for the moment you realize you messed up.
 
