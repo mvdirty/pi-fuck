@@ -1,7 +1,7 @@
 {
   "name": "pi-wtf",
   "version": "0.2.2",
-  "description": "Recover the last user prompt in pi after you realize you messed up.",
+  "description": "Recover, rewind, or undo the last user prompt in pi after you realize you messed up.",
   "type": "module",
   "author": "Travis Pew",
   "license": "MIT",
