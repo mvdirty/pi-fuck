@@ -2,14 +2,14 @@ import { randomUUID } from "node:crypto";
 import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 
-import { complete, Type } from "@mariozechner/pi-ai";
+import { complete, Type } from "@earendil-works/pi-ai";
 import {
 	getAgentDir,
 	type ExtensionAPI,
 	type ExtensionCommandContext,
 	type SessionEntry,
 	type SessionHeader,
-} from "@mariozechner/pi-coding-agent";
+} from "@earendil-works/pi-coding-agent";
 
 type UserMessageEntry = SessionEntry & { type: "message"; message: { role: "user" } };
 type FcukConfig = { words?: unknown };

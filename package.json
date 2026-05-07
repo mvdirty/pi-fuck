@@ -1,11 +1,15 @@
 {
   "name": "pi-wtf",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Recover, rewind, or undo the last user prompt in pi after you realize you messed up.",
   "type": "module",
   "author": "Travis Pew",
   "license": "MIT",
-  "keywords": ["pi-package", "pi"],
+  "keywords": [
+    "pi-package",
+    "pi",
+    "pi-extension"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/travisp/pi-wtf.git"
@@ -14,15 +18,23 @@
   "bugs": {
     "url": "https://github.com/travisp/pi-wtf/issues"
   },
-  "files": ["index.ts", "src", "README.md", "LICENSE"],
+  "files": [
+    "index.ts",
+    "src",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "publishConfig": {
     "access": "public"
   },
   "pi": {
-    "extensions": ["./index.ts"]
+    "extensions": [
+      "./index.ts"
+    ]
   },
   "peerDependencies": {
-    "@mariozechner/pi-ai": "*",
-    "@mariozechner/pi-coding-agent": "*"
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-coding-agent": "*"
   }
 }
